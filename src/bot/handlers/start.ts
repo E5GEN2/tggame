@@ -13,7 +13,7 @@ export async function handleStart(ctx: BotContext): Promise<void> {
   const { text, keyboard } = renderMainMenu();
 
   const msg = await ctx.reply(text, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 
@@ -29,7 +29,7 @@ export async function handleMainMenu(ctx: BotContext): Promise<void> {
   ctx.session.selectedCards = [];
 
   await ctx.editMessageText(text, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 }

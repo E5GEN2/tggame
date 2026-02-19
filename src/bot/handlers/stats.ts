@@ -10,8 +10,8 @@ export async function handleStats(ctx: BotContext): Promise<void> {
 
   if (!player || player.games_played === 0) {
     await ctx.editMessageText(
-      `📊 *YOUR STATS*\n\nNo games played yet\\! Start a game to build your stats\\.`,
-      { parse_mode: "MarkdownV2", reply_markup: keyboard }
+      `📊 <b>YOUR STATS</b>\n\nNo games played yet! Start a game to build your stats.`,
+      { parse_mode: "HTML", reply_markup: keyboard }
     );
     return;
   }
@@ -25,16 +25,16 @@ export async function handleStats(ctx: BotContext): Promise<void> {
   const rankText = rank ? `#${rank}` : "N/A";
 
   const text =
-    `📊 *YOUR STATS*\n\n` +
-    `🏅 Rank: *${rankText}*\n` +
-    `📈 ELO: *${player.elo}*\n` +
-    `🪙 Coins: *${player.coins}*\n` +
-    `🎮 Games: *${player.games_played}*\n` +
-    `🏆 Wins: *${player.wins}*\n` +
-    `📊 Win Rate: *${esc(winRate)}%*`;
+    `📊 <b>YOUR STATS</b>\n\n` +
+    `🏅 Rank: <b>${rankText}</b>\n` +
+    `📈 ELO: <b>${player.elo}</b>\n` +
+    `🪙 Coins: <b>${player.coins}</b>\n` +
+    `🎮 Games: <b>${player.games_played}</b>\n` +
+    `🏆 Wins: <b>${player.wins}</b>\n` +
+    `📊 Win Rate: <b>${winRate}%</b>`;
 
   await ctx.editMessageText(text, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 }
@@ -45,32 +45,32 @@ export async function handleLeaderboard(ctx: BotContext): Promise<void> {
 
   if (entries.length === 0) {
     await ctx.editMessageText(
-      `🏆 *LEADERBOARD*\n\nNo players yet\\! Be the first to play\\.`,
-      { parse_mode: "MarkdownV2", reply_markup: keyboard }
+      `🏆 <b>LEADERBOARD</b>\n\nNo players yet! Be the first to play.`,
+      { parse_mode: "HTML", reply_markup: keyboard }
     );
     return;
   }
 
   const medals = ["🥇", "🥈", "🥉"];
-  let text = `🏆 *LEADERBOARD*\n\n`;
+  let text = `🏆 <b>LEADERBOARD</b>\n\n`;
 
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
-    const prefix = i < 3 ? medals[i] : `${i + 1}\\.`;
+    const prefix = i < 3 ? medals[i] : `${i + 1}.`;
     const name = esc(e.first_name);
     const winRate =
       e.games_played > 0
         ? ((e.wins / e.games_played) * 100).toFixed(0)
         : "0";
-    text += `${prefix} *${name}* — ${e.elo} ELO \\(${esc(winRate)}% WR\\)\n`;
+    text += `${prefix} <b>${name}</b> — ${e.elo} ELO (${winRate}% WR)\n`;
   }
 
   await ctx.editMessageText(text, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 }
 
 function esc(s: string): string {
-  return s.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

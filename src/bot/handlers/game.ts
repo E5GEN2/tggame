@@ -34,7 +34,7 @@ import { logger } from "../../utils/logger.js";
 export async function handleNewGame(ctx: BotContext): Promise<void> {
   const { text, keyboard } = renderOpponentPicker();
   await ctx.editMessageText(text, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 }
@@ -304,7 +304,7 @@ async function handleGameOver(
 
   try {
     await ctx.editMessageText(text, {
-      parse_mode: "MarkdownV2",
+      parse_mode: "HTML",
       reply_markup: keyboard,
     });
   } catch {
@@ -332,11 +332,14 @@ async function updateGameMessage(
 
   try {
     await ctx.editMessageText(text, {
-      parse_mode: "MarkdownV2",
+      parse_mode: "HTML",
       reply_markup: keyboard,
     });
-  } catch {
-    // "message is not modified" or rate limit
+  } catch (e: any) {
+    const desc = e?.description || "";
+    if (!desc.includes("message is not modified")) {
+      logger.error({ error: e?.message || e }, "Failed to update game message");
+    }
   }
 }
 

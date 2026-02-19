@@ -2,39 +2,39 @@ import { BotContext } from "../context.js";
 import { InlineKeyboard } from "grammy";
 
 const HELP_TEXT = `
-❓ *HOW TO PLAY CRAZY GRID*
+❓ <b>HOW TO PLAY CRAZY GRID</b>
 
-🎯 *Goal:* Be the first to empty your hand\\!
+🎯 <b>Goal:</b> Be the first to empty your hand!
 
-🃏 *Basic Rules:*
-• Match the top card by *suit* or *rank*
+🃏 <b>Basic Rules:</b>
+• Match the top card by <b>suit</b> or <b>rank</b>
 • Can't play? Draw a card from the pile
 
-⚡ *Special Cards:*
-• *2* — Next player draws 2 \\(stackable\\!\\)
-• *8* — Wild\\! Pick any suit
-• *J* — Skip next player
-• *Q* — Reverse direction
-• *K* — Next player draws 1
-• *A* — Play again\\!
+⚡ <b>Special Cards:</b>
+• <b>2</b> — Next player draws 2 (stackable!)
+• <b>8</b> — Wild! Pick any suit
+• <b>J</b> — Skip next player
+• <b>Q</b> — Reverse direction
+• <b>K</b> — Next player draws 1
+• <b>A</b> — Play again!
 
-💥 *Combos:*
-Play multiple cards of the *same rank* at once\\!
-Effects multiply \\(e\\.g\\. two 2s \\= draw 4\\)
+💥 <b>Combos:</b>
+Play multiple cards of the <b>same rank</b> at once!
+Effects multiply (e.g. two 2s = draw 4)
 
-🔴 *CRAZY\\! Call:*
-When you're down to 1 card, press CRAZY\\!
-Forget and you'll draw 2 penalty cards\\!
+🔴 <b>CRAZY! Call:</b>
+When you're down to 1 card, press CRAZY!
+Forget and you'll draw 2 penalty cards!
 
-📊 *Progression:*
-Win games to earn coins and climb the ELO rankings\\!
+📊 <b>Progression:</b>
+Win games to earn coins and climb the ELO rankings!
 `.trim();
 
 export async function handleHelp(ctx: BotContext): Promise<void> {
   const keyboard = new InlineKeyboard().text("⬅️ Back", "main_menu");
 
   await ctx.editMessageText(HELP_TEXT, {
-    parse_mode: "MarkdownV2",
+    parse_mode: "HTML",
     reply_markup: keyboard,
   });
 }
