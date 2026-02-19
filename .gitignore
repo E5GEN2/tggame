@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.db
+.env
+token.txt
+telegram_bot_tokens.txt
+gh_repo.txt
