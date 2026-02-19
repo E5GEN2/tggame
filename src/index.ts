@@ -18,6 +18,10 @@ await initDb();
 
 const bot = createBot(BOT_TOKEN);
 
+// Kill any lingering getUpdates from a previous instance
+await bot.api.deleteWebhook({ drop_pending_updates: true });
+logger.info("Cleared pending updates");
+
 bot.start({
   onStart: (info) => {
     logger.info({ username: info.username }, "Bot started");
