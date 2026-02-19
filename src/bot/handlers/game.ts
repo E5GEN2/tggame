@@ -44,34 +44,42 @@ export async function handleStartGame(
   ctx: BotContext,
   botCount: number
 ): Promise<void> {
-  const user = ctx.from!;
-  await ensurePlayer(String(user.id), user.username || null, user.first_name);
+  logger.info({ botCount }, "handleStartGame called");
+  try {
+    const user = ctx.from!;
+    await ensurePlayer(String(user.id), user.username || null, user.first_name);
 
-  const humanPlayer: Player = {
-    id: String(user.id),
-    name: user.first_name,
-    isBot: false,
-  };
+    const humanPlayer: Player = {
+      id: String(user.id),
+      name: user.first_name,
+      isBot: false,
+    };
 
-  const profiles = pickBotProfiles(botCount);
-  const botPlayers: Player[] = profiles.map((p, i) => ({
-    id: `bot_${i}`,
-    name: `${p.emoji} ${p.name}`,
-    isBot: true,
-    botPersonality: p.personality,
-  }));
+    const profiles = pickBotProfiles(botCount);
+    const botPlayers: Player[] = profiles.map((p, i) => ({
+      id: `bot_${i}`,
+      name: `${p.emoji} ${p.name}`,
+      isBot: true,
+      botPersonality: p.personality,
+    }));
 
-  const players = [humanPlayer, ...botPlayers];
-  const state = createGame(players);
+    const players = [humanPlayer, ...botPlayers];
+    const state = createGame(players);
 
-  ctx.session.gameState = state;
-  ctx.session.selectedCards = [];
+    ctx.session.gameState = state;
+    ctx.session.selectedCards = [];
 
-  await updateGameMessage(ctx, state, false);
+    logger.info("Game created, updating message...");
+    await updateGameMessage(ctx, state, false);
+    logger.info("Message updated");
 
-  // If first turn is a bot, process it
-  if (currentPlayer(state).isBot) {
-    await processBotTurns(ctx);
+    // If first turn is a bot, process it
+    if (currentPlayer(state).isBot) {
+      await processBotTurns(ctx);
+    }
+  } catch (e: any) {
+    logger.error({ error: e?.message, stack: e?.stack }, "handleStartGame failed");
+    throw e;
   }
 }
 
