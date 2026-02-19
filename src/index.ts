@@ -1,6 +1,6 @@
-import { BOT_TOKEN } from "./config.js";
+import { BOT_TOKEN, DATABASE_URL } from "./config.js";
 import { createBot } from "./bot/bot.js";
-import { getDb, closeDb } from "./storage/db.js";
+import { initDb, closeDb } from "./storage/db.js";
 import { logger } from "./utils/logger.js";
 
 if (!BOT_TOKEN) {
@@ -8,10 +8,14 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-// Initialize database
-getDb();
+if (!DATABASE_URL) {
+  logger.fatal("DATABASE_URL environment variable is required");
+  process.exit(1);
+}
 
-// Create and start bot
+// Initialize database then start bot
+await initDb();
+
 const bot = createBot(BOT_TOKEN);
 
 bot.start({
@@ -21,10 +25,10 @@ bot.start({
 });
 
 // Graceful shutdown
-function shutdown(signal: string) {
+async function shutdown(signal: string) {
   logger.info({ signal }, "Shutting down...");
   bot.stop();
-  closeDb();
+  await closeDb();
   process.exit(0);
 }
 

@@ -1,4 +1,4 @@
-import { getDb } from "./db.js";
+import { getPool } from "./db.js";
 import { DEFAULT_ELO } from "../utils/constants.js";
 
 export interface PlayerRow {
@@ -11,68 +11,59 @@ export interface PlayerRow {
   wins: number;
 }
 
-export function ensurePlayer(
+export async function ensurePlayer(
   id: string,
   username: string | null,
   firstName: string
-): PlayerRow {
-  const db = getDb();
+): Promise<PlayerRow> {
+  const pool = getPool();
 
-  const existing = db
-    .prepare("SELECT * FROM players WHERE id = ?")
-    .get(id) as PlayerRow | undefined;
+  const { rows } = await pool.query<PlayerRow>(
+    `INSERT INTO players (id, username, first_name, elo)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (id) DO UPDATE SET
+       username = EXCLUDED.username,
+       first_name = EXCLUDED.first_name,
+       updated_at = NOW()
+     RETURNING *`,
+    [id, username, firstName, DEFAULT_ELO]
+  );
 
-  if (existing) {
-    // Update name/username if changed
-    db.prepare(
-      "UPDATE players SET username = ?, first_name = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(username, firstName, id);
-    return { ...existing, username, first_name: firstName };
-  }
-
-  db.prepare(
-    "INSERT INTO players (id, username, first_name, elo) VALUES (?, ?, ?, ?)"
-  ).run(id, username, firstName, DEFAULT_ELO);
-
-  return {
-    id,
-    username,
-    first_name: firstName,
-    elo: DEFAULT_ELO,
-    coins: 0,
-    games_played: 0,
-    wins: 0,
-  };
+  return rows[0];
 }
 
-export function getPlayer(id: string): PlayerRow | undefined {
-  const db = getDb();
-  return db.prepare("SELECT * FROM players WHERE id = ?").get(id) as
-    | PlayerRow
-    | undefined;
+export async function getPlayer(id: string): Promise<PlayerRow | undefined> {
+  const pool = getPool();
+  const { rows } = await pool.query<PlayerRow>(
+    "SELECT * FROM players WHERE id = $1",
+    [id]
+  );
+  return rows[0];
 }
 
-export function recordGameResult(
+export async function recordGameResult(
   playerId: string,
   won: boolean,
   eloChange: number,
   coinsEarned: number,
   botCount: number
-): void {
-  const db = getDb();
+): Promise<void> {
+  const pool = getPool();
 
-  db.prepare(
+  await pool.query(
     `INSERT INTO game_history (player_id, won, elo_change, coins_earned, bot_count)
-     VALUES (?, ?, ?, ?, ?)`
-  ).run(playerId, won ? 1 : 0, eloChange, coinsEarned, botCount);
+     VALUES ($1, $2, $3, $4, $5)`,
+    [playerId, won, eloChange, coinsEarned, botCount]
+  );
 
-  db.prepare(
+  await pool.query(
     `UPDATE players SET
-       elo = MAX(0, elo + ?),
-       coins = coins + ?,
+       elo = GREATEST(0, elo + $1),
+       coins = coins + $2,
        games_played = games_played + 1,
-       wins = wins + ?,
-       updated_at = datetime('now')
-     WHERE id = ?`
-  ).run(eloChange, coinsEarned, won ? 1 : 0, playerId);
+       wins = wins + $3,
+       updated_at = NOW()
+     WHERE id = $4`,
+    [eloChange, coinsEarned, won ? 1 : 0, playerId]
+  );
 }

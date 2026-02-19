@@ -4,7 +4,7 @@ import { ensurePlayer } from "../../storage/playerRepo.js";
 
 export async function handleStart(ctx: BotContext): Promise<void> {
   const user = ctx.from!;
-  ensurePlayer(
+  await ensurePlayer(
     String(user.id),
     user.username || null,
     user.first_name

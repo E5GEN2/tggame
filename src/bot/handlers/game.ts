@@ -45,7 +45,7 @@ export async function handleStartGame(
   botCount: number
 ): Promise<void> {
   const user = ctx.from!;
-  ensurePlayer(String(user.id), user.username || null, user.first_name);
+  await ensurePlayer(String(user.id), user.username || null, user.first_name);
 
   const humanPlayer: Player = {
     id: String(user.id),
@@ -283,7 +283,7 @@ async function handleGameOver(
       return BOT_RATINGS[diff] || 1000;
     });
 
-  const player = ensurePlayer(
+  const player = await ensurePlayer(
     humanId,
     ctx.from!.username || null,
     ctx.from!.first_name
@@ -298,7 +298,7 @@ async function handleGameOver(
     else coins += COINS_WIN_3BOT;
   }
 
-  recordGameResult(humanId, humanWon, eloChange, coins, botCount);
+  await recordGameResult(humanId, humanWon, eloChange, coins, botCount);
 
   const { text, keyboard } = renderGameOver(state, humanId, eloChange, coins);
 

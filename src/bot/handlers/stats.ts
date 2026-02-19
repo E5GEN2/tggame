@@ -5,7 +5,7 @@ import { getLeaderboard, getPlayerRank } from "../../storage/leaderboardRepo.js"
 
 export async function handleStats(ctx: BotContext): Promise<void> {
   const userId = String(ctx.from!.id);
-  const player = getPlayer(userId);
+  const player = await getPlayer(userId);
   const keyboard = new InlineKeyboard().text("⬅️ Back", "main_menu");
 
   if (!player || player.games_played === 0) {
@@ -21,7 +21,7 @@ export async function handleStats(ctx: BotContext): Promise<void> {
       ? ((player.wins / player.games_played) * 100).toFixed(1)
       : "0.0";
 
-  const rank = getPlayerRank(userId);
+  const rank = await getPlayerRank(userId);
   const rankText = rank ? `#${rank}` : "N/A";
 
   const text =
@@ -40,7 +40,7 @@ export async function handleStats(ctx: BotContext): Promise<void> {
 }
 
 export async function handleLeaderboard(ctx: BotContext): Promise<void> {
-  const entries = getLeaderboard(10);
+  const entries = await getLeaderboard(10);
   const keyboard = new InlineKeyboard().text("⬅️ Back", "main_menu");
 
   if (entries.length === 0) {
