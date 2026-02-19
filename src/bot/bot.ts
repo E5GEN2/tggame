@@ -27,7 +27,15 @@ export function createBot(token: string): Bot<BotContext> {
 
   // Error handler
   bot.catch((err) => {
-    logger.error({ error: err.error, ctx: err.ctx?.update }, "Bot error");
+    const e = err.error;
+    logger.error(
+      {
+        message: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+        update: JSON.stringify(err.ctx?.update),
+      },
+      "Bot error"
+    );
   });
 
   // Commands
