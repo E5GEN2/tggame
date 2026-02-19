@@ -6,12 +6,7 @@ let pool: pg.Pool;
 
 export function getPool(): pg.Pool {
   if (!pool) {
-    pool = new pg.Pool({
-      connectionString: DATABASE_URL,
-      ssl: DATABASE_URL.includes("railway")
-        ? { rejectUnauthorized: false }
-        : undefined,
-    });
+    pool = new pg.Pool({ connectionString: DATABASE_URL });
     logger.info("PostgreSQL pool created");
   }
   return pool;
