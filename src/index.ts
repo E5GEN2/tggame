@@ -13,20 +13,37 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
-// Initialize database then start bot
 await initDb();
 
 const bot = createBot(BOT_TOKEN);
 
-// Kill any lingering getUpdates from a previous instance
-await bot.api.deleteWebhook({ drop_pending_updates: true });
-logger.info("Cleared pending updates");
+// Retry loop: wait for any previous instance to fully stop
+async function startWithRetry(maxRetries = 10, delayMs = 5000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
+      logger.info({ attempt }, "Cleared pending updates, starting poll...");
 
-bot.start({
-  onStart: (info) => {
-    logger.info({ username: info.username }, "Bot started");
-  },
-});
+      await bot.start({
+        onStart: (info) => {
+          logger.info({ username: info.username }, "Bot started");
+        },
+      });
+      return;
+    } catch (err: any) {
+      if (err?.error_code === 409 || err?.description?.includes("409")) {
+        logger.warn({ attempt, maxRetries }, "409 conflict, old instance still polling. Retrying...");
+        await new Promise((r) => setTimeout(r, delayMs));
+      } else {
+        throw err;
+      }
+    }
+  }
+  logger.fatal("Failed to start after max retries");
+  process.exit(1);
+}
+
+startWithRetry();
 
 // Graceful shutdown
 async function shutdown(signal: string) {
